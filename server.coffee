@@ -2,6 +2,8 @@ cheerio = require('cheerio')
 express = require('express')
 request = require('request')
 app     = express()
+is_prod = process.env.NODE_ENV == 'production'
+port    = if is_prod then 80 else 3000
 
 sites = {
   #https://www.musixmatch.com/lyrics/Eminem/Rap-God
@@ -22,4 +24,4 @@ app.get '/:sitename/:artist/:title', (req, res) ->
 app.get '*', (req, res) ->
   res.json(error: 'not enough params')
 
-app.listen 3000
+app.listen port
