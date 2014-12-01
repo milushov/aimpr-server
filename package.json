@@ -20,7 +20,7 @@
     "url": "https://github.com/milushov/aimpr-server/issues"
   },
   "homepage": "https://github.com/milushov/aimpr-server",
-  "devDependencies": {
+  "dependencies": {
     "cheerio": "^0.18.0",
     "express": "^4.10.4",
     "request": "^2.49.0"
