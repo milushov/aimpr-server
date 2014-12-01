@@ -1,0 +1,28 @@
+{
+  "name": "aimpr-server",
+  "version": "0.0.0",
+  "description": "server side for aimpr app",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:milushov/aimpr-server"
+  },
+  "keywords": [
+    "vk",
+    "nodejs"
+  ],
+  "author": "Roma Milushov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/milushov/aimpr-server/issues"
+  },
+  "homepage": "https://github.com/milushov/aimpr-server",
+  "devDependencies": {
+    "cheerio": "^0.18.0",
+    "express": "^4.10.4",
+    "request": "^2.49.0"
+  }
+}
