@@ -8,15 +8,17 @@ array   = require('array-extended')
 
 app.set('port', (process.env.PORT || 5000))
 
+sites = {
+  'oldielyrics': '#song .lyrics'
+  'metrolyrics': '#lyrics-body-text'
+}
+
+
 app.use (req, res, next) ->
   res.header "Access-Control-Allow-Origin", "*"
   res.header "Access-Control-Allow-Headers", "X-Requested-With"
   next()
 
-sites = {
-  #https://www.musixmatch.com/lyrics/Eminem/Rap-God
-  musixmatch: 'https://www.musixmatch.com/lyrics/'
-}
 
 app.get '/:sitename/:artist/:title', (req, res) ->
   prms = req.params
@@ -29,10 +31,6 @@ app.get '/:sitename/:artist/:title', (req, res) ->
     text = $('#lyrics-html').text()
     res.json(response: text)
 
-sites = {
-  'oldielyrics': '#song .lyrics'
-  'metrolyrics': '#lyrics-body-text'
-}
 
 app.get '/search/:q', (req, res) ->
   prms = req.params
@@ -44,19 +42,22 @@ app.get '/search/:q', (req, res) ->
     match_count = 0
     # todo get uniq by domain
     urls = array(links.map (l) -> l.link).unique().value()
+    urls = urls.map (url) ->
+      url_obj = { url: url, site: null }
+      for site, _ of sites
+        url_obj.site = site if new RegExp(site).test(url)
+      url_obj
+    urls = urls.filter (url) -> url.site?
 
-    each urls, (url) ->
-      for site_name, query of sites
-        if new RegExp(site_name).test(url)
-          match_count += 1
-          console.log("finded #{url}")
+    processed_urls = 0
 
-          request url, (error, response, body) ->
-            match_count -= 1
-            $ = cheerio.load(body)
-            resp[site_name] = $(sites[site_name]).text()
-            console.log("get content for #{url}", resp[site_name])
-            res.json(response: resp) if match_count is 0 # time > 3 seconds
+    each urls, (obj) ->
+      request obj.url, (error, response, body) ->
+        $ = cheerio.load(body)
+        resp[obj.site] = $(sites[obj.site]).text()
+        console.log("get content for #{obj.url}", resp[obj.site])
+        processed_urls += 1
+        res.json(response: resp) if processed_urls is urls.length
 
     , (error, contents) ->
       console.log(error, contents)
@@ -64,6 +65,7 @@ app.get '/search/:q', (req, res) ->
 
 app.get '*', (req, res) ->
   res.json(error: 'not enough params')
+
 
 app.listen app.get('port'), ->
   console.log "Node app is running at localhost: #{app.get('port')}"

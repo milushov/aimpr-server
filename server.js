@@ -18,15 +18,16 @@
 
   app.set('port', process.env.PORT || 5000);
 
+  sites = {
+    'oldielyrics': '#song .lyrics',
+    'metrolyrics': '#lyrics-body-text'
+  };
+
   app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     return next();
   });
-
-  sites = {
-    musixmatch: 'https://www.musixmatch.com/lyrics/'
-  };
 
   app.get('/:sitename/:artist/:title', function(req, res) {
     var prms, url;
@@ -44,47 +45,48 @@
     });
   });
 
-  sites = {
-    'oldielyrics': '#song .lyrics',
-    'metrolyrics': '#lyrics-body-text'
-  };
-
   app.get('/search/:q', function(req, res) {
     var prms;
     prms = req.params;
     google.resultsPerPage = 10;
     return google(prms.q, function(err, next, links) {
-      var match_count, resp, urls;
+      var match_count, processed_urls, resp, urls;
       resp = {};
       match_count = 0;
       urls = array(links.map(function(l) {
         return l.link;
       })).unique().value();
-      return each(urls, function(url) {
-        var query, site_name, _results;
-        _results = [];
-        for (site_name in sites) {
-          query = sites[site_name];
-          if (new RegExp(site_name).test(url)) {
-            match_count += 1;
-            console.log("finded " + url);
-            _results.push(request(url, function(error, response, body) {
-              var $;
-              match_count -= 1;
-              $ = cheerio.load(body);
-              resp[site_name] = $(sites[site_name]).text();
-              console.log("get content for " + url, resp[site_name]);
-              if (match_count === 0) {
-                return res.json({
-                  response: resp
-                });
-              }
-            }));
-          } else {
-            _results.push(void 0);
+      urls = urls.map(function(url) {
+        var site, url_obj, _;
+        url_obj = {
+          url: url,
+          site: null
+        };
+        for (site in sites) {
+          _ = sites[site];
+          if (new RegExp(site).test(url)) {
+            url_obj.site = site;
           }
         }
-        return _results;
+        return url_obj;
+      });
+      urls = urls.filter(function(url) {
+        return url.site != null;
+      });
+      processed_urls = 0;
+      return each(urls, function(obj) {
+        return request(obj.url, function(error, response, body) {
+          var $;
+          $ = cheerio.load(body);
+          resp[obj.site] = $(sites[obj.site]).text();
+          console.log("get content for " + obj.url, resp[obj.site]);
+          processed_urls += 1;
+          if (processed_urls === urls.length) {
+            return res.json({
+              response: resp
+            });
+          }
+        });
       }, function(error, contents) {
         return console.log(error, contents);
       });
