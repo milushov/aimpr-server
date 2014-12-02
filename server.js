@@ -54,9 +54,11 @@
     start_time = +(new Date);
     google.resultsPerPage = 10;
     return google("lyrics " + prms.q, function(err, next, links) {
-      var match_count, processed_urls, resp, urls;
-      resp = {
-        response: {}
+      var match_count, processed_urls, result, urls;
+      result = {
+        response: {
+          items: {}
+        }
       };
       match_count = 0;
       urls = array(links.map(function(l) {
@@ -79,7 +81,7 @@
       urls = urls.filter(function(url) {
         return url.site != null;
       });
-      resp.count = urls.length;
+      result.response.count = urls.length;
       if (!urls.length) {
         res.json({
           error: "sorry, there is no lyrics for: '" + prms.q + "'"
@@ -90,11 +92,11 @@
         return request(obj.url, function(error, response, body) {
           var $;
           $ = cheerio.load(body);
-          resp.response[obj.site] = $(sites[obj.site]).text();
+          result.response.items[obj.site] = $(sites[obj.site]).text();
           processed_urls += 1;
-          resp.time = +(new Date) - start_time;
-          if (processed_urls === urls.length || resp.time >= 3000) {
-            return res.json(resp);
+          result.response.time = +(new Date) - start_time;
+          if (processed_urls === urls.length || result.response.time >= 3000) {
+            return res.json(result);
           }
         });
       }, function(error, contents) {

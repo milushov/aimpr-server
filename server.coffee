@@ -42,7 +42,7 @@ app.get '/search/:q', (req, res) ->
   google.resultsPerPage = 10
 
   google "lyrics #{prms.q}", (err, next, links) ->
-    resp = response: {}
+    result = response: { items: {} }
     match_count = 0
     # todo get uniq by domain
     urls = array(links.map (l) -> l.link).unique().value()
@@ -52,7 +52,7 @@ app.get '/search/:q', (req, res) ->
         url_obj.site = site if new RegExp(site).test(url)
       url_obj
     urls = urls.filter (url) -> url.site?
-    resp.count = urls.length
+    result.response.count = urls.length
 
     unless urls.length
       res.json(error: "sorry, there is no lyrics for: '#{prms.q}'")
@@ -62,10 +62,10 @@ app.get '/search/:q', (req, res) ->
     each urls, (obj) ->
       request obj.url, (error, response, body) ->
         $ = cheerio.load(body)
-        resp.response[obj.site] = $(sites[obj.site]).text()
+        result.response.items[obj.site] = $(sites[obj.site]).text()
         processed_urls += 1
-        resp.time = +new Date - start_time
-        res.json(resp) if processed_urls is urls.length || resp.time >= 3000
+        result.response.time = +new Date - start_time
+        res.json(result) if processed_urls is urls.length || result.response.time >= 3000
 
     , (error, contents) ->
       console.log(error, contents)
