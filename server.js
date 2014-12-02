@@ -80,6 +80,11 @@
         return url.site != null;
       });
       resp.count = urls.length;
+      if (!urls.length) {
+        res.json({
+          error: "sorry, there is no lyrics for: '" + prms.q + "'"
+        });
+      }
       processed_urls = 0;
       return each(urls, function(obj) {
         return request(obj.url, function(error, response, body) {

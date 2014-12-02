@@ -54,6 +54,9 @@ app.get '/search/:q', (req, res) ->
     urls = urls.filter (url) -> url.site?
     resp.count = urls.length
 
+    unless urls.length
+      res.json(error: "sorry, there is no lyrics for: '#{prms.q}'")
+
     processed_urls = 0
 
     each urls, (obj) ->
