@@ -19,6 +19,10 @@
   app.set('port', process.env.PORT || 5000);
 
   sites = {
+    'pesenok': '.status_select',
+    'megalyrics': '.text_inner',
+    'songspro': '.status_select',
+    'webkind': '#text',
     'oldielyrics': '#song .lyrics',
     'metrolyrics': '#lyrics-body-text',
     'musixmatch': '#lyrics-html',
@@ -53,7 +57,7 @@
     prms = req.params;
     start_time = +(new Date);
     google.resultsPerPage = 10;
-    return google("lyrics " + prms.q, function(err, next, links) {
+    return google(prms.q, function(err, next, links) {
       var match_count, processed_urls, result, urls;
       result = {
         response: {

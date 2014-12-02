@@ -9,6 +9,10 @@ array   = require('array-extended')
 app.set('port', (process.env.PORT || 5000))
 
 sites = {
+  'pesenok':     '.status_select'
+  'megalyrics':  '.text_inner'
+  'songspro':    '.status_select'
+  'webkind':     '#text'
   'oldielyrics': '#song .lyrics'
   'metrolyrics': '#lyrics-body-text'
   'musixmatch':  '#lyrics-html'
@@ -41,7 +45,7 @@ app.get '/search/:q', (req, res) ->
 
   google.resultsPerPage = 10
 
-  google "lyrics #{prms.q}", (err, next, links) ->
+  google prms.q, (err, next, links) ->
     result = response: { items: {} }
     match_count = 0
     # todo get uniq by domain
