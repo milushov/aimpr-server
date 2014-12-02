@@ -49,12 +49,15 @@
   });
 
   app.get('/search/:q', function(req, res) {
-    var prms;
+    var prms, start_time;
     prms = req.params;
+    start_time = +(new Date);
     google.resultsPerPage = 10;
     return google("lyrics " + prms.q, function(err, next, links) {
       var match_count, processed_urls, resp, urls;
-      resp = {};
+      resp = {
+        response: {}
+      };
       match_count = 0;
       urls = array(links.map(function(l) {
         return l.link;
@@ -76,18 +79,17 @@
       urls = urls.filter(function(url) {
         return url.site != null;
       });
+      resp.count = urls.length;
       processed_urls = 0;
       return each(urls, function(obj) {
         return request(obj.url, function(error, response, body) {
           var $;
           $ = cheerio.load(body);
-          resp[obj.site] = $(sites[obj.site]).text();
-          console.log("get content for " + obj.url, resp[obj.site]);
+          resp.response[obj.site] = $(sites[obj.site]).text();
           processed_urls += 1;
-          if (processed_urls === urls.length) {
-            return res.json({
-              response: resp
-            });
+          resp.time = +(new Date) - start_time;
+          if (processed_urls === urls.length || resp.time >= 3000) {
+            return res.json(resp);
           }
         });
       }, function(error, contents) {
