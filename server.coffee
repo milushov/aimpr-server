@@ -11,6 +11,9 @@ app.set('port', (process.env.PORT || 5000))
 sites = {
   'oldielyrics': '#song .lyrics'
   'metrolyrics': '#lyrics-body-text'
+  'musixmatch':  '#lyrics-html'
+  'azlyrics':    '#main>div:nth-of-type(3)'
+  'genius':      '.lyrics>p'
 }
 
 
@@ -37,7 +40,7 @@ app.get '/search/:q', (req, res) ->
 
   google.resultsPerPage = 10
 
-  google prms.q, (err, next, links) ->
+  google "lyrics #{prms.q}", (err, next, links) ->
     resp = {}
     match_count = 0
     # todo get uniq by domain

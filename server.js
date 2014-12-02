@@ -20,7 +20,10 @@
 
   sites = {
     'oldielyrics': '#song .lyrics',
-    'metrolyrics': '#lyrics-body-text'
+    'metrolyrics': '#lyrics-body-text',
+    'musixmatch': '#lyrics-html',
+    'azlyrics': '#main>div:nth-of-type(3)',
+    'genius': '.lyrics>p'
   };
 
   app.use(function(req, res, next) {
@@ -49,7 +52,7 @@
     var prms;
     prms = req.params;
     google.resultsPerPage = 10;
-    return google(prms.q, function(err, next, links) {
+    return google("lyrics " + prms.q, function(err, next, links) {
       var match_count, processed_urls, resp, urls;
       resp = {};
       match_count = 0;
