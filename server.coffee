@@ -5,8 +5,17 @@ app     = express()
 google  = require('google')
 each    = require('async-each')
 array   = require('array-extended')
+fs      = require('fs')
+https   = require('https')
 
 app.set('port', (process.env.PORT || 5000))
+
+unless process.env.NODE_ENV is 'production'
+  https.createServer(
+    key:  fs.readFileSync('key.pem')
+    cert: fs.readFileSync('cert.pem')
+    passphrase: 'aimpr'
+  , app).listen(5001)
 
 sites = {
   'pesenok':     '.status_select'
