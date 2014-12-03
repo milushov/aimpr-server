@@ -23,6 +23,7 @@
     'megalyrics': '.text_inner',
     'songspro': '.status_select',
     'webkind': '#text',
+    're-minor': '.accords2 pre',
     'oldielyrics': '#song .lyrics',
     'metrolyrics': '#lyrics-body-text',
     'musixmatch': '#lyrics-html',
