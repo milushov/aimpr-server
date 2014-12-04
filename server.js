@@ -74,7 +74,8 @@
       var match_count, processed_urls, result, urls;
       result = {
         response: {
-          items: {}
+          items: {},
+          vk: false
         }
       };
       match_count = 0;
@@ -109,7 +110,7 @@
         return request(obj.url, function(error, response, body) {
           var $;
           $ = cheerio.load(body);
-          result.response.items[obj.site] = $(sites[obj.site]).text();
+          result.response.items[obj.site] = $(sites[obj.site]).text().trim();
           processed_urls += 1;
           result.response.time = +(new Date) - start_time;
           if (processed_urls === urls.length || result.response.time >= 3000) {

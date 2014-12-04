@@ -56,7 +56,7 @@ app.get '/search/:q', (req, res) ->
   google.resultsPerPage = 10
 
   google prms.q, (err, next, links) ->
-    result = response: { items: {} }
+    result = response: { items: {}, vk: false }
     match_count = 0
     # todo get uniq by domain
     urls = array(links.map (l) -> l.link).unique().value()
@@ -76,7 +76,7 @@ app.get '/search/:q', (req, res) ->
     each urls, (obj) ->
       request obj.url, (error, response, body) ->
         $ = cheerio.load(body)
-        result.response.items[obj.site] = $(sites[obj.site]).text()
+        result.response.items[obj.site] = $(sites[obj.site]).text().trim()
         processed_urls += 1
         result.response.time = +new Date - start_time
         res.json(result) if processed_urls is urls.length || result.response.time >= 3000
