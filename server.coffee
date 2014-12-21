@@ -8,14 +8,13 @@ array   = require('array-extended')
 fs      = require('fs')
 https   = require('https')
 
-app.set('port', (process.env.PORT || 5000))
+app.set('port', (process.env.PORT || 2053))
 
-unless process.env.NODE_ENV is 'production'
-  https.createServer(
-    key:  fs.readFileSync('key.pem')
-    cert: fs.readFileSync('cert.pem')
-    passphrase: 'aimpr'
-  , app).listen(5001)
+https_app = https.createServer(
+  key:  fs.readFileSync('key.pem')
+  cert: fs.readFileSync('cert.pem')
+  passphrase: 'aimpr'
+, app)
 
 sites = {
   'pesenok':     '.status_select'
@@ -30,34 +29,23 @@ sites = {
   'genius':      '.lyrics>p'
 }
 
-
-app.use (req, res, next) ->
+app.get '/search/:q', (req, res) ->
   res.header "Access-Control-Allow-Origin", "*"
   res.header "Access-Control-Allow-Headers", "X-Requested-With"
-  next()
 
-
-app.get '/:sitename/:artist/:title', (req, res) ->
-  prms = req.params
-
-  if prms.sitename is 'musixmatch'
-    url = sites[prms.sitename] + [prms.artist, prms.title].join('/')
-
-  request url, (error, response, body) ->
-    $ = cheerio.load(body)
-    text = $('#lyrics-html').text()
-    res.json(response: text)
-
-
-app.get '/search/:q', (req, res) ->
   prms = req.params
   start_time = +new Date
 
   google.resultsPerPage = 10
 
   google prms.q, (err, next, links) ->
+
+    return res.json(error: err.message) if err
+    return res.json(error: "sorry, there is no lyrics for: '#{prms.q}'") unless links
+
     result = response: { items: {}, vk: false }
     match_count = 0
+
     # todo get uniq by domain
     urls = array(links.map (l) -> l.link).unique().value()
     urls = urls.map (url) ->
@@ -68,8 +56,7 @@ app.get '/search/:q', (req, res) ->
     urls = urls.filter (url) -> url.site?
     result.response.count = urls.length
 
-    unless urls.length
-      res.json(error: "sorry, there is no lyrics for: '#{prms.q}'")
+    return res.json(error: "sorry, there is no lyrics for: '#{prms.q}'") unless urls.length
 
     processed_urls = 0
 
@@ -79,15 +66,11 @@ app.get '/search/:q', (req, res) ->
         result.response.items[obj.site] = $(sites[obj.site]).text().trim()
         processed_urls += 1
         result.response.time = +new Date - start_time
-        res.json(result) if processed_urls is urls.length || result.response.time >= 3000
-
-    , (error, contents) ->
-      console.log(error, contents)
+        res.json(result) if processed_urls is urls.length
 
 
 app.get '*', (req, res) ->
   res.json(error: 'not enough params')
 
-
-app.listen app.get('port'), ->
+https_app.listen app.get('port'), ->
   console.log "Node app is running at localhost: #{app.get('port')}"
