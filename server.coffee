@@ -10,9 +10,11 @@ https   = require('https')
 
 app.set('port', (process.env.PORT || 2053))
 
+is_dev = process.env.USER is 'roma'
+
 https_app = https.createServer(
-  key:  fs.readFileSync('key.pem')
-  cert: fs.readFileSync('cert.pem')
+  key:  fs.readFileSync(if is_dev then 'key.pem' else 'ssl.key')
+  cert: fs.readFileSync(if is_dev then 'cert.pem' else 'ssl.crt')
   passphrase: 'aimpr'
 , app)
 
