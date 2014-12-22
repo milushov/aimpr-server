@@ -42,10 +42,12 @@ app.get '/search/:q', (req, res) ->
   google.resultsPerPage = 10
 
   is_response_generated = no
-  result = null
+  result = {error: 'internal server error'}
 
   setTimeout ->
-    res.json(result) unless is_response_generated
+    unless is_response_generated
+      res.json(result)
+      process.exit(0)
   , app.get('kill_time') + 1000
 
   google prms.q, (err, next, links) ->
@@ -70,7 +72,9 @@ app.get '/search/:q', (req, res) ->
     urls = urls.filter (url) -> url.site?
     result.response.count = urls.length
 
-    return res.json(error: "sorry, there is no lyrics for: '#{prms.q}'") unless urls.length
+    unless urls.length
+      is_response_generated = yes
+      return res.json(error: "sorry, there is no lyrics for: '#{prms.q}'")
 
     processed_urls = 0
     console.info("------------------------- #{prms.q.substr(0, 23)}")

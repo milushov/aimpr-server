@@ -55,10 +55,13 @@
     start_time = +(new Date);
     google.resultsPerPage = 10;
     is_response_generated = false;
-    result = null;
+    result = {
+      error: 'internal server error'
+    };
     setTimeout(function() {
       if (!is_response_generated) {
-        return res.json(result);
+        res.json(result);
+        return process.exit(0);
       }
     }, app.get('kill_time') + 1000);
     return google(prms.q, function(err, next, links) {
@@ -104,6 +107,7 @@
       });
       result.response.count = urls.length;
       if (!urls.length) {
+        is_response_generated = true;
         return res.json({
           error: "sorry, there is no lyrics for: '" + prms.q + "'"
         });
