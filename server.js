@@ -22,7 +22,9 @@
 
   app.set('port', process.env.PORT || 2053);
 
-  is_dev = process.env.USER === 'roma';
+  is_dev = process.env.PWD === '/Users/roma/work/aimpr-server';
+
+  console.info('is dev?', is_dev);
 
   https_app = https.createServer({
     key: fs.readFileSync(is_dev ? 'key.pem' : 'ssl.key'),

@@ -9,8 +9,8 @@ fs      = require('fs')
 https   = require('https')
 
 app.set('port', (process.env.PORT || 2053))
-
-is_dev = process.env.USER is 'roma'
+is_dev = process.env.PWD is '/Users/roma/work/aimpr-server'
+console.info('is dev?', is_dev)
 
 https_app = https.createServer(
   key:  fs.readFileSync(if is_dev then 'key.pem' else 'ssl.key')
