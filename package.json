@@ -27,6 +27,7 @@
     "crossdomain": "0.0.1",
     "google": "^0.6.0",
     "async-each": "^0.1.6",
-    "array-extended": "0.0.11"
+    "array-extended": "0.0.11",
+    "pm2": "^0.12.2"
   }
 }

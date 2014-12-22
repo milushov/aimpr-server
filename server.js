@@ -22,6 +22,8 @@
 
   app.set('port', process.env.PORT || 2053);
 
+  app.set('kill_time', 3000);
+
   is_dev = process.env.PWD === '/Users/roma/work/aimpr-server';
 
   console.info('is dev?', is_dev);
@@ -46,20 +48,29 @@
   };
 
   app.get('/search/:q', function(req, res) {
-    var prms, start_time;
+    var is_response_generated, prms, result, start_time;
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     prms = req.params;
     start_time = +(new Date);
     google.resultsPerPage = 10;
+    is_response_generated = false;
+    result = null;
+    setTimeout(function() {
+      if (!is_response_generated) {
+        return res.json(result);
+      }
+    }, app.get('kill_time') + 1000);
     return google(prms.q, function(err, next, links) {
-      var match_count, processed_urls, result, urls;
+      var match_count, processed_urls, urls;
       if (err) {
+        is_response_generated = true;
         return res.json({
-          error: err.message
+          error: 'google require captcha, try again later :('
         });
       }
       if (!links) {
+        is_response_generated = true;
         return res.json({
           error: "sorry, there is no lyrics for: '" + prms.q + "'"
         });
@@ -98,14 +109,21 @@
         });
       }
       processed_urls = 0;
+      console.info("------------------------- " + (prms.q.substr(0, 23)));
       return each(urls, function(obj) {
         return request(obj.url, function(error, response, body) {
           var $;
+          if (is_response_generated) {
+            return;
+          }
           $ = cheerio.load(body);
           result.response.items[obj.site] = $(sites[obj.site]).text().trim();
           processed_urls += 1;
           result.response.time = +(new Date) - start_time;
-          if (processed_urls === urls.length) {
+          console.info(obj.site, result.response.time);
+          if (processed_urls === urls.length || result.response.time >= app.get('kill_time')) {
+            is_response_generated = true;
+            console.info('response generated in ', result.response.time);
             return res.json(result);
           }
         });

@@ -9,6 +9,7 @@ fs      = require('fs')
 https   = require('https')
 
 app.set('port', (process.env.PORT || 2053))
+app.set('kill_time', 3000)
 is_dev = process.env.PWD is '/Users/roma/work/aimpr-server'
 console.info('is dev?', is_dev)
 
@@ -40,15 +41,26 @@ app.get '/search/:q', (req, res) ->
 
   google.resultsPerPage = 10
 
+  is_response_generated = no
+  result = null
+
+  setTimeout ->
+    res.json(result) unless is_response_generated
+  , app.get('kill_time') + 1000
+
   google prms.q, (err, next, links) ->
 
-    return res.json(error: err.message) if err
-    return res.json(error: "sorry, there is no lyrics for: '#{prms.q}'") unless links
+    if err
+      is_response_generated = yes
+      return res.json(error: 'google require captcha, try again later :(')
+
+    unless links
+      is_response_generated = yes
+      return res.json(error: "sorry, there is no lyrics for: '#{prms.q}'")
 
     result = response: { items: {}, vk: false }
     match_count = 0
 
-    # todo get uniq by domain
     urls = array(links.map (l) -> l.link).unique().value()
     urls = urls.map (url) ->
       url_obj = { url: url, site: null }
@@ -61,14 +73,22 @@ app.get '/search/:q', (req, res) ->
     return res.json(error: "sorry, there is no lyrics for: '#{prms.q}'") unless urls.length
 
     processed_urls = 0
+    console.info("------------------------- #{prms.q.substr(0, 23)}")
 
     each urls, (obj) ->
       request obj.url, (error, response, body) ->
+        return if is_response_generated
+
         $ = cheerio.load(body)
         result.response.items[obj.site] = $(sites[obj.site]).text().trim()
         processed_urls += 1
         result.response.time = +new Date - start_time
-        res.json(result) if processed_urls is urls.length
+        console.info(obj.site, result.response.time)
+
+        if processed_urls is urls.length || result.response.time >= app.get('kill_time')
+          is_response_generated = yes
+          console.info('response generated in ', result.response.time)
+          res.json(result)
 
 
 app.get '*', (req, res) ->
