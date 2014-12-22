@@ -15,7 +15,7 @@ console.info('is dev?', is_dev)
 https_app = https.createServer(
   key:  fs.readFileSync(if is_dev then 'key.pem' else 'ssl.key')
   cert: fs.readFileSync(if is_dev then 'cert.pem' else 'ssl.crt')
-  passphrase: 'aimpr'
+  passphrase: if is_dev then 'aimpr' else 'aimpraimpr'
 , app)
 
 sites = {

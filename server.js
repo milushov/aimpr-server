@@ -29,7 +29,7 @@
   https_app = https.createServer({
     key: fs.readFileSync(is_dev ? 'key.pem' : 'ssl.key'),
     cert: fs.readFileSync(is_dev ? 'cert.pem' : 'ssl.crt'),
-    passphrase: 'aimpr'
+    passphrase: is_dev ? 'aimpr' : 'aimpraimpr'
   }, app);
 
   sites = {
